@@ -351,14 +351,10 @@ class SokobanExamples {
     t.checkExpect(new Cell(target, blank).stackCell(new Cell(blank, trophy)),
         new Cell(target, trophy));
     // invalid
-    t.checkException(IllegalArgumentException, null, exampleLevelContents, null);
-    
-    t.checkExpect(new Cell(target, blank).stackCell(new Cell(target, trophy)),
-        new Cell(target, trophy));
-
-    
-
-
+    t.checkException(
+        new IllegalArgumentException(
+            "invalid stack: cannot stack this gound object with an existing ground object"),
+        new Cell(target, blank), "stackCell", new Cell(target, trophy));
   }
 
   // test level descriptions -------------------------------------------------
