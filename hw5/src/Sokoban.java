@@ -164,10 +164,6 @@ class Target extends AGround {
 
 // -----------------------------------
 
-// the state of a sokoban board
-class BoardState {
-  // TODO
-}
 
 // a sokoban level
 class Level {
