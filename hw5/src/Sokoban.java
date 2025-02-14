@@ -6,23 +6,23 @@ import tester.Tester;
 
 // a cell 
 class Cell {
-  IGround ground;
-  IContent content;
+  ICellObject ground;
+  ICellObject content;
 
   // initializes a cell with a given ground object and content object
-  public Cell(IGround ground, IContent content) {
+  public Cell(ICellObject ground, ICellObject content) {
     this.ground = ground;
     this.content = content;
   }
 
   // initializes a cell with a given ground object
-  public Cell(IGround ground) {
+  public Cell(AGround ground) {
     this.ground = ground;
     this.content = new Blank();
   }
 
   // initializes a cell with a given content object
-  public Cell(IContent content) {
+  public Cell(AContent content) {
     this.ground = new Blank();
     this.content = content;
   }
@@ -33,57 +33,83 @@ class Cell {
     this.content = new Blank();
   }
 
-  Cell stackCell(IGround ground, IContent content) {
-    return new Cell(this.ground.stackWith(ground), this.content.stackWith(content));
+  Cell stackCell(Cell cell) {
+    return new Cell(this.ground.stackWith(cell.ground), this.content.stackWith(cell.content));
   }
 }
 
-interface ICellObject{
-  
+interface ICellObject {
+
+  // stacks this cell object with another given
+  ICellObject stackWith(ICellObject other);
+
+  // stacks this cell object with another given ground object
+  ICellObject stackWithGround(AGround other);
+
+  // stacks this cell object with another given content object
+  ICellObject stackWithContent(AContent other);
 }
 
 // a ground object in a cell
-interface IGround {
+abstract class AGround implements ICellObject {
 
-  // stacks this ground object with another
-  IGround stackWith(IGround ground);
-}
-
-abstract class AGround implements IGround {
-
-  // stacks this ground object with another
-  public IGround stackWith(IGround ground) {
-    return this;
+  // stacks this ground object with a given cell object
+  public ICellObject stackWith(ICellObject other) {
+    return other.stackWithGround(this);
   }
+
+  // stacks this ground object with a given ground object
+  public ICellObject stackWithGround(AGround other) {
+    throw new IllegalArgumentException(
+        "invalid stack: cannot stack this gound object with an existing ground object");
+  }
+
+  // stacks this ground object with a given content object
+  public ICellObject stackWithContent(AContent other) {
+    throw new IllegalArgumentException(
+        "invalid stack: cannot stack this gound object with an existing content object");
+  }
+
 }
 
 // a content object in a cell
-interface IContent {
+abstract class AContent implements ICellObject {
 
-  // stacks this content object with another
-  IContent stackWith(IContent content);
-}
+  // stacks this content object with a given cell object
+  public ICellObject stackWith(ICellObject other) {
+    return other.stackWithContent(this);
+  }
 
-abstract class AContent implements IContent {
-  // stacks this ground object with another
-  public IContent stackWith(IContent content) {
-    return this;
+  // stacks this content object with a given ground object
+  public ICellObject stackWithGround(AGround other) {
+    throw new IllegalArgumentException(
+        "invalid stack: cannot stack this content object with an existing ground object");
+  }
+
+  // stacks this content object with a given content object
+  public ICellObject stackWithContent(AContent other) {
+    throw new IllegalArgumentException(
+        "invalid stack: cannot stack this content object with an existing content object");
   }
 }
 
 // a blank cell object
-class Blank implements IGround, IContent {
+class Blank implements ICellObject {
 
-  // stacks this ground object with another
-  public IGround stackWith(IGround ground) {
-    return ground;
+  // stacks this blank object with a given cell object
+  public ICellObject stackWith(ICellObject other) {
+    return other;
   }
 
-  // stacks this content object with another
-  public IContent stackWith(IContent content) {
-    return content;
+  // stacks this blank object with a given ground object
+  public ICellObject stackWithGround(AGround other) {
+    return other;
   }
 
+  // stacks this blank object with a given content object
+  public ICellObject stackWithContent(AContent other) {
+    return other;
+  }
 }
 
 // a cell that contains a player
@@ -308,8 +334,31 @@ class SokobanExamples {
   // ----------------------------------
 
   void testStackCell(Tester t) {
-    Blank blank = new Blank();
-    t.checkExpect(new Cell(blank, new Box()).stackCell(blank, blank), null);
+    ICellObject blank = new Blank();
+    ICellObject target = new Target("blue");
+    ICellObject trophy = new Trophy("blue");
+    // blank + blank
+    t.checkExpect(new Cell(blank, blank).stackCell(new Cell(blank, blank)), new Cell(blank, blank));
+    // ground + blank
+    t.checkExpect(new Cell(target, blank).stackCell(new Cell(blank, blank)),
+        new Cell(target, blank));
+    // content + blank
+    t.checkExpect(new Cell(blank, trophy).stackCell(new Cell(blank, blank)),
+        new Cell(blank, trophy));
+    // content + ground
+    t.checkExpect(new Cell(target, trophy).stackCell(new Cell(blank, blank)),
+        new Cell(target, trophy));
+    t.checkExpect(new Cell(target, blank).stackCell(new Cell(blank, trophy)),
+        new Cell(target, trophy));
+    // invalid
+    t.checkException(IllegalArgumentException, null, exampleLevelContents, null);
+    
+    t.checkExpect(new Cell(target, blank).stackCell(new Cell(target, trophy)),
+        new Cell(target, trophy));
+
+    
+
+
   }
 
   // test level descriptions -------------------------------------------------
