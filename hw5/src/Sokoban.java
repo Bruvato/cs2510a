@@ -3,6 +3,7 @@ import javalib.funworld.*;
 import javalib.worldcanvas.*;
 import javalib.worldimages.*;
 import tester.Tester;
+import java.util.function.*;
 
 // a cell 
 class Cell {
@@ -36,6 +37,11 @@ class Cell {
   Cell stackCell(Cell cell) {
     return new Cell(this.ground.stackWith(cell.ground), this.content.stackWith(cell.content));
   }
+
+  // converts this cell to an image
+  WorldImage cellToImage() {
+    return new OverlayImage(this.ground.cellObjToImage(), this.content.cellObjToImage());
+  }
 }
 
 interface ICellObject {
@@ -48,6 +54,9 @@ interface ICellObject {
 
   // stacks this cell object with another given content object
   ICellObject stackWithContent(AContent other);
+
+  // converts this cell object to an image
+  WorldImage cellObjToImage();
 }
 
 // a ground object in a cell
@@ -70,6 +79,9 @@ abstract class AGround implements ICellObject {
         "invalid stack: cannot stack this gound object with an existing content object");
   }
 
+  // converts this ground cell object to an image
+  public abstract WorldImage cellObjToImage();
+
 }
 
 // a content object in a cell
@@ -91,6 +103,10 @@ abstract class AContent implements ICellObject {
     throw new IllegalArgumentException(
         "invalid stack: cannot stack this content object with an existing content object");
   }
+
+  // converts this content cell object to an image
+  public abstract WorldImage cellObjToImage();
+
 }
 
 // a blank cell object
@@ -110,6 +126,11 @@ class Blank implements ICellObject {
   public ICellObject stackWithContent(AContent other) {
     return other;
   }
+
+  // converts this blank cell object to an image
+  public WorldImage cellObjToImage() {
+    return new RectangleImage(120, 120, OutlineMode.SOLID, Color.black);
+  }
 }
 
 // a cell that contains a player
@@ -119,6 +140,11 @@ class Player extends AContent {
   public Player(String facingDirection) {
     super();
     this.facingDirection = facingDirection;
+  }
+
+  // converts this player cell object to an image
+  public WorldImage cellObjToImage() {
+    return new FromFileImage("./src/assets/player.png");
   }
 
 }
@@ -131,6 +157,11 @@ class Trophy extends AContent {
     super();
     this.color = color;
   }
+
+  // converts this trophy cell object to an image
+  public WorldImage cellObjToImage() {
+    return new FromFileImage("./src/assets/trophy_" + this.color + ".png");
+  }
 }
 
 // a cell that contains a wall
@@ -140,6 +171,11 @@ class Wall extends AContent {
     super();
   }
 
+  // converts this wall cell object to an image
+  public WorldImage cellObjToImage() {
+    return new FromFileImage("./src/assets/wall.png");
+  }
+
 }
 
 // a cell that contains a box
@@ -147,6 +183,11 @@ class Box extends AContent {
 
   public Box() {
     super();
+  }
+
+  // converts this box cell object to an image
+  public WorldImage cellObjToImage() {
+    return new FromFileImage("./src/assets/box.png");
   }
 
 }
@@ -160,17 +201,32 @@ class Target extends AGround {
     this.color = color;
   }
 
+  // converts this target cell object to an image
+  public WorldImage cellObjToImage() {
+    return new CircleImage(60, OutlineMode.OUTLINE, Color.RED);
+  }
+
 }
 
-// -----------------------------------
-
+// --------------LEVEL---------------------
 
 // a sokoban level
 class Level {
   IList<IList<Cell>> grid;
 
+  // configures this level given the ground and content level description strings
   public Level(String groundDescription, String contentsDescription) {
+    IList<IList<Cell>> groundLevel = new GroundLevelDescription()
+        .gridDescriptionToGrid(groundDescription);
+    IList<IList<Cell>> contentsLevel = new ContentLevelDescription()
+        .gridDescriptionToGrid(contentsDescription);
 
+    this.grid = groundLevel.parallel(new StackCells(), contentsLevel);
+  }
+
+  // draws this level
+  WorldImage draw() {
+    this.grid.map(new )
   }
 
 }
@@ -184,6 +240,7 @@ interface ILevelDescription {
   // converts a row description to a row of cells
   IList<Cell> rowDescriptionToRow(String row);
 
+  // converts a given grid description to a grid of cells
   IList<IList<Cell>> gridDescriptionToGrid(String grid);
 
 }
@@ -275,7 +332,42 @@ class ContentLevelDescription extends ALevelDescription {
 
 }
 
-// ------------------------
+// ---------------FUNCTION OBJECTS-------------------------
+
+// a function object that stacks two given cells
+class StackCell implements BiFunction<Cell, Cell, Cell> {
+  // stacks two given cells
+  public Cell apply(Cell ground, Cell content) {
+    return ground.stackCell(content);
+  }
+}
+
+// a function object that stacks two given list of cells
+class StackCells implements BiFunction<IList<Cell>, IList<Cell>, IList<Cell>> {
+  // stacks two given list of cells
+  public IList<Cell> apply(IList<Cell> ground, IList<Cell> content) {
+    return ground.parallel(new StackCell(), content);
+  }
+}
+
+// a function object that converts a cell to a image
+class CellToImage implements Function<Cell, WorldImage> {
+  // converts a cell to a image
+  public WorldImage apply(Cell cell) {
+    return cell.cellToImage();
+  }
+}
+
+//a function object that converts a list of cells to a list of images
+class CellsToImage implements Function<IList<Cell>, IList<WorldImage>> {
+  // converts a list of cells to a image
+  public IList<WorldImage> apply(IList<Cell> cells) {
+    return cells.map(new CellToImage());
+  }
+}
+
+
+// ------------- HELPERS / UTLITY--------------
 class Posiion {
   int row;
   int col;
@@ -290,10 +382,56 @@ class Posiion {
 // a list of type T
 interface IList<T> {
 
+  // maps through this list of T to produce a list of U
+  <U> IList<U> map(Function<T, U> f);
+
+  // applies foldr through this list of T to produce a U
+  <U> U foldr(BiFunction<T, U, U> f, U base);
+
+  // produces a new list of T by applying a binary function to corresponding
+  // elements of this list of T and another list of T in parallel
+  IList<T> parallel(BiFunction<T, T, T> f, IList<T> list);
+
+  // produces a new list of T by applying a binary function to corresponding
+  // elements of this list of T and another empty list of T in parallel
+  IList<T> parallel(BiFunction<T, T, T> f, MtList<T> list);
+
+  // produces a new list of T by applying a binary function to corresponding
+  // elements of this list of T and another non empty list of T in parallel
+  IList<T> parallel(BiFunction<T, T, T> f, ConsList<T> list);
+
 }
 
 // an empty list of type T
 class MtList<T> implements IList<T> {
+
+  // maps through this empty list of T to produce a list of U
+  public <U> IList<U> map(Function<T, U> f) {
+    return new MtList<U>();
+  }
+
+  // applies foldr through this empty list of T to produce a U
+  public <U> U foldr(BiFunction<T, U, U> f, U base) {
+    return base;
+  }
+
+  // produces a new list of T by applying a binary function to corresponding
+  // elements of this empty list of T and another list of T in parallel
+  public IList<T> parallel(BiFunction<T, T, T> f, IList<T> list) {
+    return list.parallel(f, this);
+  }
+
+  // produces a new list of T by applying a binary function to corresponding
+  // elements of this empty list of T and another empty list of T in parallel
+  public IList<T> parallel(BiFunction<T, T, T> f, MtList<T> list) {
+    return this;
+  }
+
+  // produces a new list of T by applying a binary function to corresponding
+  // elements of this empty list of T and another non empty list of T in parallel
+  public IList<T> parallel(BiFunction<T, T, T> f, ConsList<T> list) {
+    throw new IllegalArgumentException("invalid lists: lists cannot be of different size");
+  }
 
 }
 
@@ -305,6 +443,35 @@ class ConsList<T> implements IList<T> {
   public ConsList(T first, IList<T> rest) {
     this.first = first;
     this.rest = rest;
+  }
+
+  // maps through this non empty list of T to produce a list of U
+  public <U> IList<U> map(Function<T, U> f) {
+    return new ConsList<U>(f.apply(this.first), this.rest.map(f));
+  }
+
+  // applies foldr through this non empty list of T to produce a U
+  public <U> U foldr(BiFunction<T, U, U> f, U base) {
+    return f.apply(this.first, this.rest.foldr(f, base));
+  }
+
+  // produces a new list of T by applying a binary function to corresponding
+  // elements of this non empty list of T and another list of T in parallel
+  public IList<T> parallel(BiFunction<T, T, T> f, IList<T> list) {
+    return list.parallel(f, this);
+  }
+
+  // produces a new list of T by applying a binary function to corresponding
+  // elements of this non empty list of T and another empty list of T in parallel
+  public IList<T> parallel(BiFunction<T, T, T> f, MtList<T> list) {
+    throw new IllegalArgumentException("invalid lists: lists cannot be of different size");
+  }
+
+  // produces a new list of T by applying a binary function to corresponding
+  // elements of this non empty list of T and another non empty list of T in
+  // parallel
+  public IList<T> parallel(BiFunction<T, T, T> f, ConsList<T> list) {
+    return new ConsList<T>(f.apply(this.first, list.first), this.rest.parallel(f, list.rest));
   }
 
 }
@@ -327,33 +494,8 @@ class SokobanExamples {
     c.show();
   }
 
-  // ----------------------------------
-
-  void testStackCell(Tester t) {
-    ICellObject blank = new Blank();
-    ICellObject target = new Target("blue");
-    ICellObject trophy = new Trophy("blue");
-    // blank + blank
-    t.checkExpect(new Cell(blank, blank).stackCell(new Cell(blank, blank)), new Cell(blank, blank));
-    // ground + blank
-    t.checkExpect(new Cell(target, blank).stackCell(new Cell(blank, blank)),
-        new Cell(target, blank));
-    // content + blank
-    t.checkExpect(new Cell(blank, trophy).stackCell(new Cell(blank, blank)),
-        new Cell(blank, trophy));
-    // content + ground
-    t.checkExpect(new Cell(target, trophy).stackCell(new Cell(blank, blank)),
-        new Cell(target, trophy));
-    t.checkExpect(new Cell(target, blank).stackCell(new Cell(blank, trophy)),
-        new Cell(target, trophy));
-    // invalid
-    t.checkException(
-        new IllegalArgumentException(
-            "invalid stack: cannot stack this gound object with an existing ground object"),
-        new Cell(target, blank), "stackCell", new Cell(target, trophy));
-  }
-
-  // test level descriptions -------------------------------------------------
+  // ---------------- test level descriptions
+  // -------------------------------------------------
   GroundLevelDescription groundLevelDescription = new GroundLevelDescription();
   ContentLevelDescription contentLevelDescription = new ContentLevelDescription();
 
@@ -413,4 +555,81 @@ class SokobanExamples {
                 new MtList<>())));
   }
 
+  // --------------- test stack cell ----------------------------------
+  void testStackCell(Tester t) {
+    ICellObject blank = new Blank();
+    ICellObject target = new Target("blue");
+    ICellObject trophy = new Trophy("blue");
+    // blank + blank
+    t.checkExpect(new Cell(blank, blank).stackCell(new Cell(blank, blank)), new Cell(blank, blank));
+    // ground + blank
+    t.checkExpect(new Cell(target, blank).stackCell(new Cell(blank, blank)),
+        new Cell(target, blank));
+    // content + blank
+    t.checkExpect(new Cell(blank, trophy).stackCell(new Cell(blank, blank)),
+        new Cell(blank, trophy));
+    // content + ground
+    t.checkExpect(new Cell(target, trophy).stackCell(new Cell(blank, blank)),
+        new Cell(target, trophy));
+    t.checkExpect(new Cell(target, blank).stackCell(new Cell(blank, trophy)),
+        new Cell(target, trophy));
+    // invalid
+    t.checkException(
+        new IllegalArgumentException(
+            "invalid stack: cannot stack this gound object with an existing ground object"),
+        new Cell(target, blank), "stackCell", new Cell(target, trophy));
+
+    // stack rows
+    t.checkExpect(
+        groundLevelDescription.rowDescriptionToRow("B_").parallel(new StackCell(),
+            contentLevelDescription.rowDescriptionToRow("bW")),
+        new ConsList<Cell>(new Cell(new Target("blue"), new Trophy("blue")),
+            new ConsList<Cell>(new Cell(new Wall()), new MtList<Cell>())));
+    // stack grid
+    t.checkExpect(
+        groundLevelDescription.gridDescriptionToGrid("B_\n" + "_R").parallel(new StackCells(),
+            contentLevelDescription.gridDescriptionToGrid("bW\n" + ">B")),
+        new ConsList<>(
+            new ConsList<>(new Cell(new Target("blue"), new Trophy("blue")),
+                new ConsList<>(new Cell(new Blank(), new Wall()), new MtList<>())),
+            new ConsList<>(
+                new ConsList<>(new Cell(new Blank(), new Player("right")),
+                    new ConsList<>(new Cell(new Target("red"), new Box()), new MtList<>())),
+                new MtList<>())));
+  }
+
+  // --------------- test parallel
+
+  // a function object that computes the sum of two integers
+  class Addition implements BiFunction<Integer, Integer, Integer> {
+    // computes the sum of two given integers
+    public Integer apply(Integer t, Integer u) {
+      return t + u;
+    }
+  }
+
+  void testParallel(Tester t) {
+    IList<Integer> mt = new MtList<Integer>();
+    IList<Integer> list0 = new ConsList<Integer>(1,
+        new ConsList<Integer>(2, new ConsList<Integer>(3, mt)));
+    IList<Integer> list1 = new ConsList<Integer>(4,
+        new ConsList<Integer>(5, new ConsList<Integer>(6, mt)));
+    IList<Integer> list2 = new ConsList<Integer>(4, new ConsList<Integer>(5, mt));
+    Addition add = new Addition();
+
+    // empty + empty
+    t.checkExpect(mt.parallel(add, mt), mt);
+    // empty + non empty
+    t.checkException(
+        new IllegalArgumentException("invalid lists: lists cannot be of different size"), mt,
+        "parallel", add, list0);
+    // same size
+    t.checkExpect(list0.parallel(add, list1),
+        new ConsList<Integer>(5, new ConsList<Integer>(7, new ConsList<Integer>(9, mt))));
+    // different size
+    t.checkException(
+        new IllegalArgumentException("invalid lists: lists cannot be of different size"), list1,
+        "parallel", add, list2);
+
+  }
 }
