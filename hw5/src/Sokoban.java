@@ -40,7 +40,7 @@ class Cell {
 
   // converts this cell to an image
   WorldImage cellToImage() {
-    return new OverlayImage(this.ground.cellObjToImage(), this.content.cellObjToImage());
+    return new OverlayImage(this.content.cellObjToImage(), this.ground.cellObjToImage());
   }
 }
 
@@ -129,7 +129,7 @@ class Blank implements ICellObject {
 
   // converts this blank cell object to an image
   public WorldImage cellObjToImage() {
-    return new RectangleImage(120, 120, OutlineMode.SOLID, Color.black);
+    return new RectangleImage(120, 120, OutlineMode.OUTLINE, Color.black).movePinhole(-60, -60);
   }
 }
 
@@ -144,7 +144,7 @@ class Player extends AContent {
 
   // converts this player cell object to an image
   public WorldImage cellObjToImage() {
-    return new FromFileImage("./src/assets/player.png");
+    return new FromFileImage("./src/assets/player.png").movePinhole(-60, -60);
   }
 
 }
@@ -160,7 +160,7 @@ class Trophy extends AContent {
 
   // converts this trophy cell object to an image
   public WorldImage cellObjToImage() {
-    return new FromFileImage("./src/assets/trophy_" + this.color + ".png");
+    return new FromFileImage("./src/assets/trophy_" + this.color + ".png").movePinhole(-60, -60);
   }
 }
 
@@ -173,7 +173,7 @@ class Wall extends AContent {
 
   // converts this wall cell object to an image
   public WorldImage cellObjToImage() {
-    return new FromFileImage("./src/assets/wall.png");
+    return new FromFileImage("./src/assets/wall.png").movePinhole(-60, -60);
   }
 
 }
@@ -187,7 +187,7 @@ class Box extends AContent {
 
   // converts this box cell object to an image
   public WorldImage cellObjToImage() {
-    return new FromFileImage("./src/assets/box.png");
+    return new FromFileImage("./src/assets/box.png").movePinhole(-60, -60);
   }
 
 }
@@ -203,7 +203,18 @@ class Target extends AGround {
 
   // converts this target cell object to an image
   public WorldImage cellObjToImage() {
-    return new CircleImage(60, OutlineMode.OUTLINE, Color.RED);
+    Color color;
+    switch (this.color) {
+    case "blue":
+      return new CircleImage(60, OutlineMode.OUTLINE, Color.BLUE).movePinhole(-60, -60);
+    case "green":
+      return new CircleImage(60, OutlineMode.OUTLINE, Color.GREEN).movePinhole(-60, -60);
+    case "red":
+      return new CircleImage(60, OutlineMode.OUTLINE, Color.RED).movePinhole(-60, -60);
+    case "yellow":
+      return new CircleImage(60, OutlineMode.OUTLINE, Color.YELLOW).movePinhole(-60, -60);
+    }
+    return new CircleImage(60, OutlineMode.OUTLINE, Color.BLACK).movePinhole(-60, -60);
   }
 
 }
@@ -226,7 +237,8 @@ class Level {
 
   // draws this level
   WorldImage draw() {
-    this.grid.map(new )
+    return this.grid.map(new CellsToImages()).map(new ImagesToImage()).foldr(new AboveImages(),
+        new EmptyImage());
   }
 
 }
@@ -359,13 +371,36 @@ class CellToImage implements Function<Cell, WorldImage> {
 }
 
 //a function object that converts a list of cells to a list of images
-class CellsToImage implements Function<IList<Cell>, IList<WorldImage>> {
-  // converts a list of cells to a image
+class CellsToImages implements Function<IList<Cell>, IList<WorldImage>> {
+  // converts a list of cells to a list of images
   public IList<WorldImage> apply(IList<Cell> cells) {
     return cells.map(new CellToImage());
   }
 }
 
+// a function object that converts a list of images to an image via beside images
+class ImagesToImage implements Function<IList<WorldImage>, WorldImage> {
+  // converts a list of images to an image via beside images
+  public WorldImage apply(IList<WorldImage> images) {
+    return images.foldr(new BesideImages(), new EmptyImage());
+  }
+}
+
+// a function object that aligns a list of images horizontally
+class BesideImages implements BiFunction<WorldImage, WorldImage, WorldImage> {
+  // aligns a list of images horizontally
+  public WorldImage apply(WorldImage current, WorldImage acc) {
+    return new BesideImage(current, acc);
+  }
+}
+
+//a function object that aligns a list of images vertically
+class AboveImages implements BiFunction<WorldImage, WorldImage, WorldImage> {
+  // aligns a list of images vertically
+  public WorldImage apply(WorldImage current, WorldImage acc) {
+    return new AboveImage(current, acc);
+  }
+}
 
 // ------------- HELPERS / UTLITY--------------
 class Posiion {
@@ -480,17 +515,24 @@ class ConsList<T> implements IList<T> {
 
 class SokobanExamples {
   WorldImage circle = new CircleImage(100, OutlineMode.SOLID, Color.red);
-  WorldImage box = new FromFileImage("./src/assets/box.png");
+  WorldImage wall = new VisiblePinholeImage(new Wall().cellObjToImage());
 
   String exampleLevelGround = "________\n" + "___R____\n" + "________\n" + "_B____Y_\n"
       + "________\n" + "___G____\n" + "________";
   String exampleLevelContents = "__WWW___\n" + "__W_WW__\n" + "WWWr_WWW\n" + "W_b>yB_W\n"
       + "WW_gWWWW\n" + "_WW_W___\n" + "__WWW___";
 
+  static final int WIDTH = 1000;
+  static final int HEIGHT = 1000;
+
   void testDraw(Tester t) {
-    WorldCanvas c = new WorldCanvas(500, 500);
-    WorldScene s = new WorldScene(500, 500);
-    c.drawScene(s.placeImageXY(box, 0, 0));
+    WorldCanvas c = new WorldCanvas(WIDTH, HEIGHT);
+    WorldScene s = new WorldScene(WIDTH, HEIGHT);
+
+    Level level = new Level(exampleLevelGround, exampleLevelContents);
+    WorldImage levelImg = level.draw();
+
+    c.drawScene(s.placeImageXY(levelImg, WIDTH / 2, HEIGHT / 2));
     c.show();
   }
 
