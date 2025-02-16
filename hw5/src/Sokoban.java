@@ -276,8 +276,7 @@ class Level {
 
   Level move(String direction) {
     this.changeFacing(direction);
-    ;
-    if (this.isDirectionMovable(direction)) {
+;    if (this.isDirectionMovable(direction)) {
       switch (direction) {
       case "up":
         return this.switchTwo(this.getPlayerLocation(),
@@ -669,8 +668,6 @@ class Sokoban extends World {
 // ------------------------------------------
 
 class SokobanExamples {
-  WorldImage circle = new CircleImage(100, OutlineMode.SOLID, Color.red);
-  WorldImage box = new FromFileImage("./src/assets/box.png");
 
   static final int WIDTH = 1000;
   static final int HEIGHT = 1000;
@@ -680,14 +677,8 @@ class SokobanExamples {
   String exampleLevelGround = "________\n" + "___R____\n" + "________\n" + "_B____Y_\n"
       + "________\n" + "___G____\n" + "________";
   String exampleLevelContents = "__WWW___\n" + "__W_WW__\n" + "WWWr_WWW\n" + "W_b>yB_W\n"
-      + "WW_gWWWW\n" + "_WW_W___\n" + "__WWW___";
+      + "WW__WWWW\n" + "_WW_W___\n" + "__WWW___";
 
-  void testDraw(Tester t) {
-    WorldCanvas c = new WorldCanvas(500, 500);
-    WorldScene s = new WorldScene(500, 500);
-    c.drawScene(s.placeImageXY(box, 0, 0));
-    c.show();
-  }
   Level level = new Level(exampleLevelGround, exampleLevelContents);
   WorldImage levelImg = level.draw();
 
