@@ -34,6 +34,7 @@ class Cell {
     this.content = new Blank();
   }
 
+  // stacks this cell with another given cell
   Cell stackCell(Cell cell) {
     return new Cell(this.ground.stackWith(cell.ground), this.content.stackWith(cell.content));
   }
@@ -41,6 +42,11 @@ class Cell {
   // converts this cell to an image
   WorldImage cellToImage() {
     return new OverlayImage(this.content.cellObjToImage(), this.ground.cellObjToImage());
+  }
+
+  // determines if this cell won
+  boolean cellWon() {
+    return this.ground.sameColor(this.content);
   }
 }
 
@@ -57,6 +63,16 @@ interface ICellObject {
 
   // converts this cell object to an image
   WorldImage cellObjToImage();
+
+  // determines if this cell object is the same color as another given
+  boolean sameColor(ICellObject other);
+
+  // determines if this cell object is the same color as a given trophy
+  boolean sameColorTrophy(Trophy other);
+
+  // determines if this cell object is the same color as a given target
+  boolean sameColorTarget(Target other);
+
 }
 
 // a ground object in a cell
@@ -81,6 +97,21 @@ abstract class AGround implements ICellObject {
 
   // converts this ground cell object to an image
   public abstract WorldImage cellObjToImage();
+
+  // determines if this ground cell object is the same color as another given
+  public boolean sameColor(ICellObject other) {
+    return true;
+  }
+
+  // determines if this ground cell object is the same color as a given trophy
+  public boolean sameColorTrophy(Trophy other) {
+    return false;
+  }
+
+  // determines if this ground cell object is the same color as a given target
+  public boolean sameColorTarget(Target other) {
+    return false;
+  }
 
 }
 
@@ -107,6 +138,21 @@ abstract class AContent implements ICellObject {
   // converts this content cell object to an image
   public abstract WorldImage cellObjToImage();
 
+  // determines if this content cell object is the same color as another given
+  public boolean sameColor(ICellObject other) {
+    return true;
+  }
+
+  // determines if this content cell object is the same color as a given trophy
+  public boolean sameColorTrophy(Trophy other) {
+    return false;
+  }
+
+  // determines if this content cell object is the same color as a given target
+  public boolean sameColorTarget(Target other) {
+    return false;
+  }
+
 }
 
 // a blank cell object
@@ -130,6 +176,21 @@ class Blank implements ICellObject {
   // converts this blank cell object to an image
   public WorldImage cellObjToImage() {
     return new RectangleImage(120, 120, OutlineMode.OUTLINE, Color.black).movePinhole(-60, -60);
+  }
+
+  // determines if this blank cell object is the same color as another given
+  public boolean sameColor(ICellObject other) {
+    return true;
+  }
+
+  // determines if this blank cell object is the same color as a given trophy
+  public boolean sameColorTrophy(Trophy other) {
+    return false;
+  }
+
+  // determines if this blank cell object is the same color as a given target
+  public boolean sameColorTarget(Target other) {
+    return false;
   }
 }
 
@@ -162,6 +223,18 @@ class Trophy extends AContent {
   public WorldImage cellObjToImage() {
     return new FromFileImage("./src/assets/trophy_" + this.color + ".png").movePinhole(-60, -60);
   }
+
+  // determines if this trophy cell object is the same color as another given
+  public boolean sameColor(ICellObject other) {
+    return other.sameColorTrophy(this);
+  }
+
+  // determines if this trophy cell object is the same color as another given
+  // target
+  public boolean sameColorTarget(Target other) {
+    return this.color.equals(other.color);
+  }
+
 }
 
 // a cell that contains a wall
@@ -217,6 +290,17 @@ class Target extends AGround {
     return new CircleImage(60, OutlineMode.OUTLINE, Color.BLACK).movePinhole(-60, -60);
   }
 
+  // determines if this target cell object is the same color as another given
+  public boolean sameColor(ICellObject other) {
+    return other.sameColorTarget(this);
+  }
+
+  // determines if this target cell object is the same color as another given
+  // trophy
+  public boolean sameColorTrophy(Trophy other) {
+    return this.color.equals(other.color);
+  }
+
 }
 
 // --------------LEVEL---------------------
@@ -239,6 +323,11 @@ class Level {
   WorldImage draw() {
     return this.grid.map(new CellsToImages()).map(new ImagesToImage()).foldr(new AboveImages(),
         new EmptyImage());
+  }
+
+  // determines if the player has won the level
+  boolean levelWon() {
+    return this.grid.andMap(new CellsWon());
   }
 
 }
@@ -402,6 +491,22 @@ class AboveImages implements BiFunction<WorldImage, WorldImage, WorldImage> {
   }
 }
 
+// a predicate object that determines if this cell won
+class CellWon implements Predicate<Cell> {
+  // determines if this cell won
+  public boolean test(Cell cell) {
+    return cell.cellWon();
+  }
+}
+
+//a predicate object that determines if this list of cells won
+class CellsWon implements Predicate<IList<Cell>> {
+  // determines if this list of cells won
+  public boolean test(IList<Cell> cells) {
+    return cells.andMap(new CellWon());
+  }
+}
+
 // ------------- HELPERS / UTLITY--------------
 class Posiion {
   int row;
@@ -435,6 +540,9 @@ interface IList<T> {
   // elements of this list of T and another non empty list of T in parallel
   IList<T> parallel(BiFunction<T, T, T> f, ConsList<T> list);
 
+  // determines if every element of this list of T satisfies a predicate of type T
+  boolean andMap(Predicate<T> p);
+
 }
 
 // an empty list of type T
@@ -466,6 +574,12 @@ class MtList<T> implements IList<T> {
   // elements of this empty list of T and another non empty list of T in parallel
   public IList<T> parallel(BiFunction<T, T, T> f, ConsList<T> list) {
     throw new IllegalArgumentException("invalid lists: lists cannot be of different size");
+  }
+
+  // determines if every element of this empty list of T satisfies a predicate of
+  // type T
+  public boolean andMap(Predicate<T> p) {
+    return true;
   }
 
 }
@@ -509,6 +623,12 @@ class ConsList<T> implements IList<T> {
     return new ConsList<T>(f.apply(this.first, list.first), this.rest.parallel(f, list.rest));
   }
 
+  // determines if every element of this non empty list of T satisfies a predicate
+  // of type T
+  public boolean andMap(Predicate<T> p) {
+    return p.test(this.first) && this.rest.andMap(p);
+  }
+
 }
 
 // ------------------------------------------
@@ -536,8 +656,7 @@ class SokobanExamples {
     c.show();
   }
 
-  // ---------------- test level descriptions
-  // -------------------------------------------------
+  // ---------------- test level descriptions -----------------------------------
   GroundLevelDescription groundLevelDescription = new GroundLevelDescription();
   ContentLevelDescription contentLevelDescription = new ContentLevelDescription();
 
@@ -638,6 +757,33 @@ class SokobanExamples {
                 new ConsList<>(new Cell(new Blank(), new Player("right")),
                     new ConsList<>(new Cell(new Target("red"), new Box()), new MtList<>())),
                 new MtList<>())));
+  }
+
+  // ------------- test level won ------------------------
+  void testLevelWon(Tester t) {
+    // cell won
+    t.checkExpect(groundLevelDescription.cellDescriptionToCell("R")
+        .stackCell(contentLevelDescription.cellDescriptionToCell("r")).cellWon(), true);
+    t.checkExpect(groundLevelDescription.cellDescriptionToCell("R")
+        .stackCell(contentLevelDescription.cellDescriptionToCell("g")).cellWon(), false);
+    t.checkExpect(groundLevelDescription.cellDescriptionToCell("R")
+        .stackCell(contentLevelDescription.cellDescriptionToCell("_")).cellWon(), false);
+    t.checkExpect(groundLevelDescription.cellDescriptionToCell("R")
+        .stackCell(contentLevelDescription.cellDescriptionToCell(">")).cellWon(), false);
+    t.checkExpect(groundLevelDescription.cellDescriptionToCell("_")
+        .stackCell(contentLevelDescription.cellDescriptionToCell(">")).cellWon(), true);
+    t.checkExpect(groundLevelDescription.cellDescriptionToCell("_")
+        .stackCell(contentLevelDescription.cellDescriptionToCell("_")).cellWon(), true);
+
+
+    // cells won
+    t.checkExpect(new Level("_R\n__", "_r\n__").levelWon(), true);
+    t.checkExpect(new Level("_R\n__", "r_\n__").levelWon(), false);
+    t.checkExpect(new Level("__\n__", "__\n__").levelWon(), true);
+    t.checkExpect(new Level("RG\n__", "r_\ng_").levelWon(), false);
+
+
+
   }
 
   // --------------- test parallel
