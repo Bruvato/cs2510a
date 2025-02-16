@@ -310,6 +310,7 @@ class Level {
     this.grid = groundLevel.parallel(new StackCells(), contentsLevel);
   }
 
+  // get the location of the player in the level
   Position getPlayerLocation() {
     IList<Integer> helper = this.grid.map(new applyIndexOf());
     int row = helper.indexOf(new notNegOne(), 1);
@@ -317,10 +318,12 @@ class Level {
     return new Position(row, col);
   }
 
+  // check whether the content of that cell is blank or not
   boolean isCellEmpty(Position pos) {
     return grid.getIndex(pos.row).getIndex(pos.col).content instanceof Blank;
   }
 
+  // check whether the player can move along the direction
   boolean isDirectionMovable(String dir) {
     switch (dir) {
     case "up":
@@ -339,6 +342,7 @@ class Level {
     throw new IllegalArgumentException("cannot move in that way");
   }
 
+  // switch the contents of the two positions
   Level switchTwo(Position p1, Position p2) {
     IList<IList<Cell>> newGrid = this.grid;
     Cell cell1 = new Cell(grid.getIndex(p1.row).getIndex(p1.col).ground,
@@ -350,6 +354,7 @@ class Level {
     return new Level(newGrid);
   }
 
+  // change the facing of the player
   void changeFacing(String direction) {
     if (direction.equals("up") || direction.equals("down") || direction.equals("left")
         || direction.equals("right")) {
@@ -358,6 +363,7 @@ class Level {
     }
   }
 
+  // make the player move along the direction if possible
   Level move(String direction) {
     this.changeFacing(direction);
 ;    if (this.isDirectionMovable(direction)) {
@@ -746,24 +752,28 @@ class ConsList<T> implements IList<T> {
   }
 }
 
+// determine whether player is in the cell
 class isPlayer implements Function<Cell, Boolean> {
   public Boolean apply(Cell target) {
     return target.content instanceof Player;
   }
 }
 
+// determine whether a number is negative one
 class notNegOne implements Function<Integer, Boolean> {
   public Boolean apply(Integer target) {
     return target != -1;
   }
 }
 
+// apply indexOf method to a list of cell
 class applyIndexOf implements Function<IList<Cell>, Integer> {
   public Integer apply(IList<Cell> target) {
     return target.indexOf(new isPlayer(), 1);
   }
 }
 
+// represent a sokoban game
 class Sokoban extends World {
   Level level;
 
@@ -771,11 +781,13 @@ class Sokoban extends World {
     this.level = level;
   }
 
+  // draw the game
   public WorldScene makeScene() {
     WorldScene s = new WorldScene(1200, 800);
     return s.placeImageXY(level.draw(), 600, 400);
   }
 
+  // the player move base on the key pressed
   public World onKeyEvent(String key) {
     if (key.equals("up") || key.equals("down") || key.equals("right") || key.equals("left")) {
       return new Sokoban(level.move(key));
