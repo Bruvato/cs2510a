@@ -41,7 +41,7 @@ class Cell {
 
   // converts this cell to an image
   WorldImage cellToImage() {
-    return new OverlayImage(this.ground.cellObjToImage(), this.content.cellObjToImage());
+    return new OverlayImage(this.content.cellObjToImage(), this.ground.cellObjToImage());
   }
 
   // determines if this cell won
@@ -276,7 +276,18 @@ class Target extends AGround {
 
   // converts this target cell object to an image
   public WorldImage cellObjToImage() {
-    return new CircleImage(60, OutlineMode.OUTLINE, Color.RED);
+    Color color;
+    switch (this.color) {
+    case "blue":
+      return new CircleImage(60, OutlineMode.OUTLINE, Color.BLUE);
+    case "green":
+      return new CircleImage(60, OutlineMode.OUTLINE, Color.GREEN);
+    case "red":
+      return new CircleImage(60, OutlineMode.OUTLINE, Color.RED);
+    case "yellow":
+      return new CircleImage(60, OutlineMode.OUTLINE, Color.YELLOW);
+    }
+    return new CircleImage(60, OutlineMode.OUTLINE, Color.BLACK);
   }
 
   // determines if this target cell object is the same color as another given
@@ -366,7 +377,8 @@ class Level {
   // make the player move along the direction if possible
   Level move(String direction) {
     this.changeFacing(direction);
-;    if (this.isDirectionMovable(direction)) {
+    ;
+    if (this.isDirectionMovable(direction)) {
       switch (direction) {
       case "up":
         return this.switchTwo(this.getPlayerLocation(),
@@ -589,22 +601,22 @@ class Position {
 //a list of type T
 interface IList<T> {
 
-// maps through this list of T to produce a list of U
+  // maps through this list of T to produce a list of U
   <U> IList<U> map(Function<T, U> f);
 
-// applies foldr through this list of T to produce a U
+    // applies foldr through this list of T to produce a U
   <U> U foldr(BiFunction<T, U, U> f, U base);
 
-// produces a new list of T by applying a binary function to corresponding
-// elements of this list of T and another list of T in parallel
+  // produces a new list of T by applying a binary function to corresponding
+  // elements of this list of T and another list of T in parallel
   IList<T> parallel(BiFunction<T, T, T> f, IList<T> list);
 
-// produces a new list of T by applying a binary function to corresponding
-// elements of this list of T and another empty list of T in parallel
+  // produces a new list of T by applying a binary function to corresponding
+  // elements of this list of T and another empty list of T in parallel
   IList<T> parallel(BiFunction<T, T, T> f, MtList<T> list);
 
-// produces a new list of T by applying a binary function to corresponding
-// elements of this list of T and another non empty list of T in parallel
+  // produces a new list of T by applying a binary function to corresponding
+  // elements of this list of T and another non empty list of T in parallel
   IList<T> parallel(BiFunction<T, T, T> f, ConsList<T> list);
 
   // determines if every element of this list of T satisfies a predicate of type T
@@ -624,30 +636,30 @@ interface IList<T> {
 //an empty list of type T
 class MtList<T> implements IList<T> {
 
-// maps through this empty list of T to produce a list of U
+  // maps through this empty list of T to produce a list of U
   public <U> IList<U> map(Function<T, U> f) {
     return new MtList<U>();
   }
 
-// applies foldr through this empty list of T to produce a U
+  // applies foldr through this empty list of T to produce a U
   public <U> U foldr(BiFunction<T, U, U> f, U base) {
     return base;
   }
 
-// produces a new list of T by applying a binary function to corresponding
-// elements of this empty list of T and another list of T in parallel
+  // produces a new list of T by applying a binary function to corresponding
+  // elements of this empty list of T and another list of T in parallel
   public IList<T> parallel(BiFunction<T, T, T> f, IList<T> list) {
     return list.parallel(f, this);
   }
 
-// produces a new list of T by applying a binary function to corresponding
-// elements of this empty list of T and another empty list of T in parallel
+  // produces a new list of T by applying a binary function to corresponding
+  // elements of this empty list of T and another empty list of T in parallel
   public IList<T> parallel(BiFunction<T, T, T> f, MtList<T> list) {
     return this;
   }
 
-// produces a new list of T by applying a binary function to corresponding
-// elements of this empty list of T and another non empty list of T in parallel
+  // produces a new list of T by applying a binary function to corresponding
+  // elements of this empty list of T and another non empty list of T in parallel
   public IList<T> parallel(BiFunction<T, T, T> f, ConsList<T> list) {
     throw new IllegalArgumentException("invalid lists: lists cannot be of different size");
   }
@@ -685,31 +697,31 @@ class ConsList<T> implements IList<T> {
     this.rest = rest;
   }
 
-// maps through this non empty list of T to produce a list of U
+  // maps through this non empty list of T to produce a list of U
   public <U> IList<U> map(Function<T, U> f) {
     return new ConsList<U>(f.apply(this.first), this.rest.map(f));
   }
 
-// applies foldr through this non empty list of T to produce a U
+  // applies foldr through this non empty list of T to produce a U
   public <U> U foldr(BiFunction<T, U, U> f, U base) {
     return f.apply(this.first, this.rest.foldr(f, base));
   }
 
-// produces a new list of T by applying a binary function to corresponding
-// elements of this non empty list of T and another list of T in parallel
+  // produces a new list of T by applying a binary function to corresponding
+  // elements of this non empty list of T and another list of T in parallel
   public IList<T> parallel(BiFunction<T, T, T> f, IList<T> list) {
     return list.parallel(f, this);
   }
 
-// produces a new list of T by applying a binary function to corresponding
-// elements of this non empty list of T and another empty list of T in parallel
+  // produces a new list of T by applying a binary function to corresponding
+  // elements of this non empty list of T and another empty list of T in parallel
   public IList<T> parallel(BiFunction<T, T, T> f, MtList<T> list) {
     throw new IllegalArgumentException("invalid lists: lists cannot be of different size");
   }
 
-// produces a new list of T by applying a binary function to corresponding
-// elements of this non empty list of T and another non empty list of T in
-// parallel
+  // produces a new list of T by applying a binary function to corresponding
+  // elements of this non empty list of T and another non empty list of T in
+  // parallel
   public IList<T> parallel(BiFunction<T, T, T> f, ConsList<T> list) {
     return new ConsList<T>(f.apply(this.first, list.first), this.rest.parallel(f, list.rest));
   }
@@ -775,6 +787,9 @@ class applyIndexOf implements Function<IList<Cell>, Integer> {
 
 // represent a sokoban game
 class Sokoban extends World {
+  static final int WIDTH = 1000;
+  static final int HEIGHT = 1000;
+
   Level level;
 
   public Sokoban(Level level) {
@@ -783,8 +798,8 @@ class Sokoban extends World {
 
   // draw the game
   public WorldScene makeScene() {
-    WorldScene s = new WorldScene(1200, 800);
-    return s.placeImageXY(level.draw(), 600, 400);
+    WorldScene s = new WorldScene(WIDTH, HEIGHT);
+    return s.placeImageXY(level.draw(), WIDTH / 2, HEIGHT / 2);
   }
 
   // the player move base on the key pressed
@@ -801,12 +816,11 @@ class Sokoban extends World {
 // ------------------------------------------
 
 class SokobanExamples {
-
   static final int WIDTH = 1000;
   static final int HEIGHT = 1000;
 
-  WorldCanvas c = new WorldCanvas(500, 500);
-  WorldScene s = new WorldScene(500, 500);
+  WorldCanvas c = new WorldCanvas(WIDTH, HEIGHT);
+  WorldScene s = new WorldScene(WIDTH, HEIGHT);
   String exampleLevelGround = "________\n" + "___R____\n" + "________\n" + "_B____Y_\n"
       + "________\n" + "___G____\n" + "________";
   String exampleLevelContents = "__WWW___\n" + "__W_WW__\n" + "WWWr_WWW\n" + "W_b>yB_W\n"
@@ -881,7 +895,7 @@ class SokobanExamples {
                 new MtList<>())));
   }
 
-// --------------- test stack cell ----------------------------------
+  // --------------- test stack cell ----------------------------------
   void testStackCell(Tester t) {
     ICellObject blank = new Blank();
     ICellObject target = new Target("blue");
@@ -940,14 +954,11 @@ class SokobanExamples {
     t.checkExpect(groundLevelDescription.cellDescriptionToCell("_")
         .stackCell(contentLevelDescription.cellDescriptionToCell("_")).cellWon(), true);
 
-
     // cells won
     t.checkExpect(new Level("_R\n__", "_r\n__").levelWon(), true);
     t.checkExpect(new Level("_R\n__", "r_\n__").levelWon(), false);
     t.checkExpect(new Level("__\n__", "__\n__").levelWon(), true);
     t.checkExpect(new Level("RG\n__", "r_\ng_").levelWon(), false);
-
-
 
   }
 
