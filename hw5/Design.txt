@@ -1,0 +1,44 @@
+
+Design
+* Cell
+   * Represents a single cell in the game grid which contains a ground object and a content object
+   * The content object is rendered on top of the ground object
+* ICellObject
+   * Represents objects that can exist in a cell
+* AGround
+   * Represents a ground object in a cell
+   * Could be a target
+* AContent
+   * Represents a content object in a cell
+   * Could be a player, trophy, wall, or box
+* Blank
+   * Represents a cell with no cell objects (empty)
+* Level
+   * Represents a game level with a grid of cell objects (lists of list of cells)
+   * Constructor creates a level from a given grid
+   * * ILevelDescription
+   * Provides methods for parsing level descriptions and converting them into a grid of cell objects (lists of list of cells)
+* ALevelDescription
+   * Implements common functionality for ILevelDescription
+* GroundLevelDescription
+   * A concrete implementation of ALevelDescription for parsing ground-level descriptions
+* ContentLevelDescription
+   * A concrete implementation of ALevelDescription for parsing content-level descriptions
+* Function objects used for grid operations, image rendering and game logic:
+   * Stack cell - stacks two cells
+   * CellToImage - Converts a Cell into a WorldImage
+   * CellsToImages - Converts a Cell into a WorldImage
+   * ImagesToImage - Converts a list of images into a single image by aligning them horizontally
+   * BesideImages - Aligns images horizontally
+   * AboveImages - Aligns images vertically
+   * CellWon - Determines if a cell meets the win condition
+   * CellsWon- Determines if all cells in a list meet the win condition
+* Ilist
+* A generic interface representing a list of elements of type T. It supports various functional operations, including mapping, folding, parallel operations, and finding elements
+* Mtlist
+   * A class representing an empty list, implementing IList<T>
+* ConsList
+   * A class representing a non-empty list, implementing IList<T>
+* Position
+   * Represents a coordinate in a grid with row and col attributes
+*

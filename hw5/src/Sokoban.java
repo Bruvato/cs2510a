@@ -10,6 +10,19 @@ class Cell {
   ICellObject ground;
   ICellObject content;
 
+  /*
+   * TEMPLATE: Fields: ... this.ground ... -- ICellObject ... this.content ... --
+   * ICellObject
+   * 
+   * Methods: ... this.stackCell(Cell) ... -- Cell ... this.cellToImage() ... --
+   * WorldImage
+   * 
+   * Methods for Fields: ... this.ground.stackWith(ICellObject) ... -- ICellObject
+   * ... this.content.stackWith(ICellObject) ... -- ICellObject ...
+   * this.ground.cellObjToImage() ... -- WorldImage ...
+   * this.content.cellObjToImage() ... -- WorldImage
+   */
+
   // initializes a cell with a given ground object and content object
   public Cell(ICellObject ground, ICellObject content) {
     this.ground = ground;
@@ -51,6 +64,12 @@ class Cell {
 }
 
 interface ICellObject {
+  /*
+   * TEMPLATE: Methods: ... this.stackWith(ICellObject) ... -- ICellObject ...
+   * this.stackWithGround(AGround) ... -- ICellObject ...
+   * this.stackWithContent(AContent) ... -- ICellObject ... this.cellObjToImage()
+   * ... -- WorldImage
+   */
 
   // stacks this cell object with another given
   ICellObject stackWith(ICellObject other);
@@ -77,6 +96,10 @@ interface ICellObject {
 
 // a ground object in a cell
 abstract class AGround implements ICellObject {
+
+  /*
+   * TEMPLATE: Methods: ... this.cellObjToImage() ... -- WorldImage
+   */
 
   // stacks this ground object with a given cell object
   public ICellObject stackWith(ICellObject other) {
@@ -118,6 +141,10 @@ abstract class AGround implements ICellObject {
 // a content object in a cell
 abstract class AContent implements ICellObject {
 
+  /*
+   * TEMPLATE: Methods: ... this.cellObjToImage() ... -- WorldImage
+   */
+
   // stacks this content object with a given cell object
   public ICellObject stackWith(ICellObject other) {
     return other.stackWithContent(this);
@@ -157,6 +184,10 @@ abstract class AContent implements ICellObject {
 
 // a blank cell object
 class Blank implements ICellObject {
+
+  /*
+   * TEMPLATE: Methods: ... this.cellObjToImage() ... -- WorldImage
+   */
 
   // stacks this blank object with a given cell object
   public ICellObject stackWith(ICellObject other) {
@@ -198,6 +229,14 @@ class Blank implements ICellObject {
 class Player extends AContent {
   String facingDirection;
 
+  /*
+   * TEMPLATE: Fields: ... this.facingDirection ... -- String
+   * 
+   * Methods: ... this.cellObjToImage() ... -- WorldImage
+   * 
+   * Methods for Fields: ... this.facingDirection.equals(String) ... -- boolean
+   */
+
   public Player(String facingDirection) {
     super();
     this.facingDirection = facingDirection;
@@ -213,6 +252,14 @@ class Player extends AContent {
 // a cell that contains a trophy
 class Trophy extends AContent {
   String color;
+
+  /*
+   * TEMPLATE: Fields: ... this.color ... -- String
+   * 
+   * Methods: ... this.cellObjToImage() ... -- WorldImage
+   * 
+   * Methods for Fields: ... this.color.equals(String) ... -- boolean
+   */
 
   public Trophy(String color) {
     super();
@@ -240,6 +287,10 @@ class Trophy extends AContent {
 // a cell that contains a wall
 class Wall extends AContent {
 
+  /*
+   * TEMPLATE: Methods: ... this.cellObjToImage() ... -- WorldImage
+   */
+
   public Wall() {
     super();
   }
@@ -253,6 +304,10 @@ class Wall extends AContent {
 
 // a cell that contains a box
 class Box extends AContent {
+
+  /*
+   * TEMPLATE: Methods: ... this.cellObjToImage() ... -- WorldImage
+   */
 
   public Box() {
     super();
@@ -269,6 +324,14 @@ class Box extends AContent {
 class Target extends AGround {
   String color;
 
+  /*
+   * TEMPLATE: Fields: ... this.color ... -- String
+   * 
+   * Methods: ... this.cellObjToImage() ... -- WorldImage
+   * 
+   * Methods for Fields: ... this.color.equals(String) ... -- boolean
+   */
+
   public Target(String color) {
     super();
     this.color = color;
@@ -276,18 +339,18 @@ class Target extends AGround {
 
   // converts this target cell object to an image
   public WorldImage cellObjToImage() {
-    Color color;
     switch (this.color) {
-    case "blue":
-      return new CircleImage(60, OutlineMode.OUTLINE, Color.BLUE);
-    case "green":
-      return new CircleImage(60, OutlineMode.OUTLINE, Color.GREEN);
-    case "red":
-      return new CircleImage(60, OutlineMode.OUTLINE, Color.RED);
-    case "yellow":
-      return new CircleImage(60, OutlineMode.OUTLINE, Color.YELLOW);
+      case "blue":
+        return new CircleImage(60, OutlineMode.OUTLINE, Color.BLUE);
+      case "green":
+        return new CircleImage(60, OutlineMode.OUTLINE, Color.GREEN);
+      case "red":
+        return new CircleImage(60, OutlineMode.OUTLINE, Color.RED);
+      case "yellow":
+        return new CircleImage(60, OutlineMode.OUTLINE, Color.YELLOW);
+      default:
+        return new CircleImage(60, OutlineMode.OUTLINE, Color.BLACK);
     }
-    return new CircleImage(60, OutlineMode.OUTLINE, Color.BLACK);
   }
 
   // determines if this target cell object is the same color as another given
@@ -307,6 +370,22 @@ class Target extends AGround {
 class Level {
   IList<IList<Cell>> grid;
 
+  /*
+   * TEMPLATE: Fields: ... this.grid ... -- IList<IList<Cell>>
+   * 
+   * Methods: ... this.getPlayerLocation() ... -- Position ...
+   * this.isCellEmpty(Position) ... -- boolean ... this.isDirectionMovable(String)
+   * ... -- boolean ... this.switchTwo(Position, Position) ... -- Level ...
+   * this.changeFacing(String) ... -- void ... this.move(String) ... -- Level ...
+   * this.draw() ... -- WorldImage
+   * 
+   * Methods for Fields: ... this.grid.map(Function) ... -- IList<IList<Cell>> ...
+   * this.grid.foldr(BiFunction, U) ... -- U ... this.grid.parallel(BiFunction,
+   * IList<IList<Cell>>) ... -- IList<IList<Cell>> ... this.grid.getIndex(int) ...
+   * -- IList<Cell> ... this.grid.indexOf(Function<T, Boolean>) ... -- int ...
+   * this.grid.change(IList<Cell>, int) ... -- IList<IList<Cell>>
+   */
+
   public Level(IList<IList<Cell>> grid) {
     this.grid = grid;
   }
@@ -323,8 +402,8 @@ class Level {
 
   // get the location of the player in the level
   Position getPlayerLocation() {
-    IList<Integer> helper = this.grid.map(new applyIndexOf());
-    int row = helper.indexOf(new notNegOne(), 1);
+    IList<Integer> helper = this.grid.map(new ApplyIndexOf());
+    int row = helper.indexOf(new NotNegOne(), 1);
     int col = helper.getIndex(row);
     return new Position(row, col);
   }
@@ -337,20 +416,21 @@ class Level {
   // check whether the player can move along the direction
   boolean isDirectionMovable(String dir) {
     switch (dir) {
-    case "up":
-      return this.isCellEmpty(
-          new Position(this.getPlayerLocation().row - 1, this.getPlayerLocation().col));
-    case "down":
-      return this.isCellEmpty(
-          new Position(this.getPlayerLocation().row + 1, this.getPlayerLocation().col));
-    case "left":
-      return this.isCellEmpty(
-          new Position(this.getPlayerLocation().row, this.getPlayerLocation().col - 1));
-    case "right":
-      return this.isCellEmpty(
-          new Position(this.getPlayerLocation().row, this.getPlayerLocation().col + 1));
+      case "up":
+        return this.isCellEmpty(
+            new Position(this.getPlayerLocation().row - 1, this.getPlayerLocation().col));
+      case "down":
+        return this.isCellEmpty(
+            new Position(this.getPlayerLocation().row + 1, this.getPlayerLocation().col));
+      case "left":
+        return this.isCellEmpty(
+            new Position(this.getPlayerLocation().row, this.getPlayerLocation().col - 1));
+      case "right":
+        return this.isCellEmpty(
+            new Position(this.getPlayerLocation().row, this.getPlayerLocation().col + 1));
+      default:
+        throw new IllegalArgumentException("cannot move in that way");
     }
-    throw new IllegalArgumentException("cannot move in that way");
   }
 
   // switch the contents of the two positions
@@ -377,21 +457,22 @@ class Level {
   // make the player move along the direction if possible
   Level move(String direction) {
     this.changeFacing(direction);
-    ;
     if (this.isDirectionMovable(direction)) {
       switch (direction) {
-      case "up":
-        return this.switchTwo(this.getPlayerLocation(),
-            new Position(this.getPlayerLocation().row - 1, this.getPlayerLocation().col));
-      case "down":
-        return this.switchTwo(this.getPlayerLocation(),
-            new Position(this.getPlayerLocation().row + 1, this.getPlayerLocation().col));
-      case "left":
-        return this.switchTwo(this.getPlayerLocation(),
-            new Position(this.getPlayerLocation().row, this.getPlayerLocation().col - 1));
-      case "right":
-        return this.switchTwo(this.getPlayerLocation(),
-            new Position(this.getPlayerLocation().row, this.getPlayerLocation().col + 1));
+        case "up":
+          return this.switchTwo(this.getPlayerLocation(),
+              new Position(this.getPlayerLocation().row - 1, this.getPlayerLocation().col));
+        case "down":
+          return this.switchTwo(this.getPlayerLocation(),
+              new Position(this.getPlayerLocation().row + 1, this.getPlayerLocation().col));
+        case "left":
+          return this.switchTwo(this.getPlayerLocation(),
+              new Position(this.getPlayerLocation().row, this.getPlayerLocation().col - 1));
+        case "right":
+          return this.switchTwo(this.getPlayerLocation(),
+              new Position(this.getPlayerLocation().row, this.getPlayerLocation().col + 1));
+        default:
+          return this;
       }
     }
     return this;
@@ -413,6 +494,12 @@ class Level {
 // a level description
 interface ILevelDescription {
 
+  /*
+   * TEMPLATE: Methods: ... this.cellDescriptionToCell(String) ... -- Cell ...
+   * this.rowDescriptionToRow(String) ... -- IList<Cell> ...
+   * this.gridDescriptionToGrid(String) ... -- IList<IList<Cell>>
+   */
+
   // converts a given cell description to a cell
   Cell cellDescriptionToCell(String s);
 
@@ -426,6 +513,11 @@ interface ILevelDescription {
 
 // a level description
 abstract class ALevelDescription implements ILevelDescription {
+
+  /*
+   * TEMPLATE: Methods: ... this.rowDescriptionToRow(String) ... -- IList<Cell>
+   * ... this.gridDescriptionToGrid(String) ... -- IList<IList<Cell>>
+   */
 
   // converts a given row description to a row of cells
   public IList<Cell> rowDescriptionToRow(String row) {
@@ -458,21 +550,26 @@ abstract class ALevelDescription implements ILevelDescription {
 // a ground level description
 class GroundLevelDescription extends ALevelDescription {
 
+  /*
+   * TEMPLATE: Methods: ... this.cellDescriptionToCell(String) ... -- Cell
+   */
+
   // converts a given ground cell description to a cell
   public Cell cellDescriptionToCell(String s) {
     switch (s) {
-    case "Y":
-      return new Cell(new Target("yellow"));
-    case "G":
-      return new Cell(new Target("green"));
-    case "B":
-      return new Cell(new Target("blue"));
-    case "R":
-      return new Cell(new Target("red"));
-    case "_":
-      return new Cell();
+      case "Y":
+        return new Cell(new Target("yellow"));
+      case "G":
+        return new Cell(new Target("green"));
+      case "B":
+        return new Cell(new Target("blue"));
+      case "R":
+        return new Cell(new Target("red"));
+      case "_":
+        return new Cell();
+      default:
+        throw new IllegalArgumentException("invalid ground cell description");
     }
-    throw new IllegalArgumentException("invalid ground cell description");
   }
 
 }
@@ -480,33 +577,39 @@ class GroundLevelDescription extends ALevelDescription {
 // a content level description
 class ContentLevelDescription extends ALevelDescription {
 
+  /*
+   * TEMPLATE: Methods: ... this.cellDescriptionToCell(String) ... -- Cell
+   */
+
   // converts a given content cell description to a cell
   public Cell cellDescriptionToCell(String s) {
     switch (s) {
-    case "y":
-      return new Cell(new Trophy("yellow"));
-    case "g":
-      return new Cell(new Trophy("green"));
-    case "b":
-      return new Cell(new Trophy("blue"));
-    case "r":
-      return new Cell(new Trophy("red"));
-    case "W":
-      return new Cell(new Wall());
-    case "B":
-      return new Cell(new Box());
-    case ">":
-      return new Cell(new Player("right"));
-    case "<":
-      return new Cell(new Player("left"));
-    case "^":
-      return new Cell(new Player("up"));
-    case "v":
-      return new Cell(new Player("down"));
-    case "_":
-      return new Cell();
+      case "y":
+        return new Cell(new Trophy("yellow"));
+      case "g":
+        return new Cell(new Trophy("green"));
+      case "b":
+        return new Cell(new Trophy("blue"));
+      case "r":
+        return new Cell(new Trophy("red"));
+      case "W":
+        return new Cell(new Wall());
+      case "B":
+        return new Cell(new Box());
+      case ">":
+        return new Cell(new Player("right"));
+      case "<":
+        return new Cell(new Player("left"));
+      case "^":
+        return new Cell(new Player("up"));
+      case "v":
+        return new Cell(new Player("down"));
+      case "_":
+        return new Cell();
+      default:
+        throw new IllegalArgumentException("invalid content cell description");
+        
     }
-    throw new IllegalArgumentException("invalid content cell description");
   }
 
 }
@@ -515,6 +618,10 @@ class ContentLevelDescription extends ALevelDescription {
 
 // a function object that stacks two given cells
 class StackCell implements BiFunction<Cell, Cell, Cell> {
+
+  /*
+   * TEMPLATE: Methods: ... this.apply(Cell, Cell) ... -- Cell
+   */
   // stacks two given cells
   public Cell apply(Cell ground, Cell content) {
     return ground.stackCell(content);
@@ -523,6 +630,11 @@ class StackCell implements BiFunction<Cell, Cell, Cell> {
 
 // a function object that stacks two given list of cells
 class StackCells implements BiFunction<IList<Cell>, IList<Cell>, IList<Cell>> {
+
+  /*
+   * TEMPLATE: Methods: ... this.apply(IList<Cell>, IList<Cell>) ... --
+   * IList<Cell>
+   */
   // stacks two given list of cells
   public IList<Cell> apply(IList<Cell> ground, IList<Cell> content) {
     return ground.parallel(new StackCell(), content);
@@ -531,6 +643,9 @@ class StackCells implements BiFunction<IList<Cell>, IList<Cell>, IList<Cell>> {
 
 // a function object that converts a cell to a image
 class CellToImage implements Function<Cell, WorldImage> {
+  /*
+   * TEMPLATE: Methods: ... this.apply(Cell) ... -- WorldImage
+   */
   // converts a cell to a image
   public WorldImage apply(Cell cell) {
     return cell.cellToImage();
@@ -539,6 +654,9 @@ class CellToImage implements Function<Cell, WorldImage> {
 
 //a function object that converts a list of cells to a list of images
 class CellsToImages implements Function<IList<Cell>, IList<WorldImage>> {
+  /*
+   * TEMPLATE: Methods: ... this.apply(IList<Cell>) ... -- IList<WorldImage>
+   */
   // converts a list of cells to a list of images
   public IList<WorldImage> apply(IList<Cell> cells) {
     return cells.map(new CellToImage());
@@ -547,6 +665,9 @@ class CellsToImages implements Function<IList<Cell>, IList<WorldImage>> {
 
 // a function object that converts a list of images to an image via beside images
 class ImagesToImage implements Function<IList<WorldImage>, WorldImage> {
+  /*
+   * TEMPLATE: Methods: ... this.apply(IList<WorldImage>) ... -- WorldImage
+   */
   // converts a list of images to an image via beside images
   public WorldImage apply(IList<WorldImage> images) {
     return images.foldr(new BesideImages(), new EmptyImage());
@@ -555,6 +676,9 @@ class ImagesToImage implements Function<IList<WorldImage>, WorldImage> {
 
 // a function object that aligns a list of images horizontally
 class BesideImages implements BiFunction<WorldImage, WorldImage, WorldImage> {
+  /*
+   * TEMPLATE: Methods: ... this.apply(WorldImage, WorldImage) ... -- WorldImage
+   */
   // aligns a list of images horizontally
   public WorldImage apply(WorldImage current, WorldImage acc) {
     return new BesideImage(current, acc);
@@ -563,6 +687,9 @@ class BesideImages implements BiFunction<WorldImage, WorldImage, WorldImage> {
 
 //a function object that aligns a list of images vertically
 class AboveImages implements BiFunction<WorldImage, WorldImage, WorldImage> {
+  /*
+   * TEMPLATE: Methods: ... this.apply(WorldImage, WorldImage) ... -- WorldImage
+   */
   // aligns a list of images vertically
   public WorldImage apply(WorldImage current, WorldImage acc) {
     return new AboveImage(current, acc);
@@ -571,6 +698,9 @@ class AboveImages implements BiFunction<WorldImage, WorldImage, WorldImage> {
 
 // a predicate object that determines if this cell won
 class CellWon implements Predicate<Cell> {
+  /*
+   * TEMPLATE: Methods: ... this.apply(Cell) ... -- boolean
+   */
   // determines if this cell won
   public boolean test(Cell cell) {
     return cell.cellWon();
@@ -579,9 +709,43 @@ class CellWon implements Predicate<Cell> {
 
 //a predicate object that determines if this list of cells won
 class CellsWon implements Predicate<IList<Cell>> {
+  /*
+   * TEMPLATE: Methods: ... this.apply(Cell) ... -- boolean
+   */
   // determines if this list of cells won
   public boolean test(IList<Cell> cells) {
     return cells.andMap(new CellWon());
+  }
+}
+
+//determine whether player is in the cell
+class IsPlayer implements Function<Cell, Boolean> {
+  /*
+   * TEMPLATE: Methods: ... this.apply(Cell) ... -- Boolean
+   */
+  public Boolean apply(Cell target) {
+    return target.content instanceof Player;
+  }
+}
+
+//determine whether a number is negative one
+class NotNegOne implements Function<Integer, Boolean> {
+  /*
+   * TEMPLATE: Methods: ... this.apply(Integer) ... -- Boolean
+   */
+  public Boolean apply(Integer target) {
+    return target != -1;
+  }
+}
+
+//apply indexOf method to a list of cell
+class ApplyIndexOf implements Function<IList<Cell>, Integer> {
+
+  /*
+   * TEMPLATE: Methods: ... this.apply(IList<Cell>) ... -- Integer
+   */
+  public Integer apply(IList<Cell> target) {
+    return target.indexOf(new IsPlayer(), 1);
   }
 }
 
@@ -596,6 +760,12 @@ class Position {
     this.col = col;
   }
 
+  /*
+   * TEMPLATE: Fields: ... this.row ... -- int ... this.col ... -- int
+   * 
+   * Methods for Fields: ... this.row == int ... -- boolean ... this.col == int
+   * ... -- boolean
+   */
 }
 
 //a list of type T
@@ -604,7 +774,7 @@ interface IList<T> {
   // maps through this list of T to produce a list of U
   <U> IList<U> map(Function<T, U> f);
 
-    // applies foldr through this list of T to produce a U
+  // applies foldr through this list of T to produce a U
   <U> U foldr(BiFunction<T, U, U> f, U base);
 
   // produces a new list of T by applying a binary function to corresponding
@@ -635,6 +805,14 @@ interface IList<T> {
 
 //an empty list of type T
 class MtList<T> implements IList<T> {
+
+  /*
+   * TEMPLATE: Methods: ... this.map(Function<T, U>) ... -- IList<U> ...
+   * this.foldr(BiFunction<T, U, U>, U) ... -- U ... this.parallel(BiFunction<T,
+   * T, T>, IList<T>) ... -- IList<T> ... this.indexOf(Function<T, Boolean>, int)
+   * ... -- int ... this.getIndex(int) ... -- T ... this.change(T, int) ... --
+   * IList<T>
+   */
 
   // maps through this empty list of T to produce a list of U
   public <U> IList<U> map(Function<T, U> f) {
@@ -691,6 +869,22 @@ class MtList<T> implements IList<T> {
 class ConsList<T> implements IList<T> {
   T first;
   IList<T> rest;
+
+  /*
+   * TEMPLATE: Fields: ... this.first ... -- T ... this.rest ... -- IList<T>
+   * 
+   * Methods: ... this.map(Function<T, U>) ... -- IList<U> ...
+   * this.foldr(BiFunction<T, U, U>, U) ... -- U ... this.parallel(BiFunction<T,
+   * T, T>, IList<T>) ... -- IList<T> ... this.indexOf(Function<T, Boolean>, int)
+   * ... -- int ... this.getIndex(int) ... -- T ... this.change(T, int) ... --
+   * IList<T>
+   * 
+   * Methods for Fields: ... this.rest.map(Function<T, U>) ... -- IList<U> ...
+   * this.rest.foldr(BiFunction<T, U, U>, U) ... -- U ...
+   * this.rest.parallel(BiFunction<T, T, T>, IList<T>) ... -- IList<T> ...
+   * this.rest.indexOf(Function<T, Boolean>, int) ... -- int ...
+   * this.rest.getIndex(int) ... -- T ... this.rest.change(T, int) ... -- IList<T>
+   */
 
   public ConsList(T first, IList<T> rest) {
     this.first = first;
@@ -764,27 +958,6 @@ class ConsList<T> implements IList<T> {
   }
 }
 
-// determine whether player is in the cell
-class isPlayer implements Function<Cell, Boolean> {
-  public Boolean apply(Cell target) {
-    return target.content instanceof Player;
-  }
-}
-
-// determine whether a number is negative one
-class notNegOne implements Function<Integer, Boolean> {
-  public Boolean apply(Integer target) {
-    return target != -1;
-  }
-}
-
-// apply indexOf method to a list of cell
-class applyIndexOf implements Function<IList<Cell>, Integer> {
-  public Integer apply(IList<Cell> target) {
-    return target.indexOf(new isPlayer(), 1);
-  }
-}
-
 // represent a sokoban game
 class Sokoban extends World {
   static final int WIDTH = 1000;
@@ -792,6 +965,20 @@ class Sokoban extends World {
 
   Level level;
 
+  /*
+   * TEMPLATE: Fields: ... this.level ... -- Level
+   * 
+   * Methods: ... this.makeScene() ... -- WorldScene ... this.onKeyEvent(String)
+   * ... -- World
+   * 
+   * Methods for Fields: ... this.level.move(String) ... -- Level ...
+   * this.level.getPlayerLocation() ... -- Position ...
+   * this.level.isCellEmpty(Position) ... -- boolean ...
+   * this.level.isDirectionMovable(String) ... -- boolean ...
+   * this.level.switchTwo(Position, Position) ... -- Level ...
+   * this.level.changeFacing(String) ... -- void ... this.level.draw() ... --
+   * WorldImage
+   */
   public Sokoban(Level level) {
     this.level = level;
   }
@@ -823,7 +1010,7 @@ class SokobanExamples {
   WorldScene s = new WorldScene(WIDTH, HEIGHT);
   String exampleLevelGround = "________\n" + "___R____\n" + "________\n" + "_B____Y_\n"
       + "________\n" + "___G____\n" + "________";
-  String exampleLevelContents = "__WWW___\n" + "__W_WW__\n" + "WWWr_WWW\n" + "W_b>yB_W\n"
+  String exampleLevelContents = "__WWW___\n" + "__W_WW__\n" + "WWWrgWWW\n" + "W_b>yB_W\n"
       + "WW__WWWW\n" + "_WW_W___\n" + "__WWW___";
 
   Level level = new Level(exampleLevelGround, exampleLevelContents);

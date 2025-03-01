@@ -1,0 +1,6 @@
+Use arrow keys to move player up, dow, left, and right
+GOAL: push all trophies onto their respectively colored targets
+The player can move up, down, left, and right.
+Crates and trophies can be pushed if there is an empty space behind them.
+Player cannot push or move through walls
+The game is won when all trophies are on their corresponding targets.

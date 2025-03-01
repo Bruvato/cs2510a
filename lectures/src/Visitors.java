@@ -65,7 +65,7 @@ interface IFunc<T, U> {
   U apply(T arg);
 }
 
-interface IShapeVisitor<R> extends IFunc<IShape, Double> {
+interface IShapeVisitor<R> extends IFunc<IShape, R> {
   R visitCircle(Circle circle);
 
   R visitRect(Rect rect);
