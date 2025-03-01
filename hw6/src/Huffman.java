@@ -94,15 +94,14 @@ class Huffman {
 
     for (int i = 0; i < str.length(); i++) {
 
-      char c = str.charAt(i);
-      String s = String.valueOf(c);
+      String s = str.substring(i, i + 1);
 
       if (!this.letters.contains(s)) {
         throw new IllegalArgumentException(
             "Tried to encode " + s + " but that is not part of the language.");
       }
 
-      return this.forest.get(0).pathTo(s);
+//      return this.forest.get(0).pathTo(s);
 
     }
 
@@ -253,7 +252,6 @@ class Node implements BinTree {
     return result;
   }
 
-  
 }
 
 // ----------------------- EXAMPLES ----------------------------------------
@@ -268,6 +266,7 @@ class HuffmanExamples {
   Huffman huffman;
   ArrayList<String> letters;
   ArrayList<Integer> freqs;
+  ArrayList<BinTree> forest;
 
   void initEmpty() {
     letters = new ArrayList<String>();
@@ -296,6 +295,7 @@ class HuffmanExamples {
     // c 11, d 15, b 17, g 17, a 18, e 27
 
     huffman = new Huffman(letters, freqs);
+    forest = huffman.forest;
   }
 
   void testConstructor(Tester t) {
@@ -350,13 +350,13 @@ class HuffmanExamples {
     initEmpty();
     initData();
 
-    ArrayList<BinTree> forest = new ArrayList<BinTree>();
+    ArrayList<BinTree> f = new ArrayList<BinTree>();
 
-    forest.add(new Node(105,
+    f.add(new Node(105,
         new Node(44, new Leaf("a", 18), new Node(26, new Leaf("c", 11), new Leaf("d", 15))),
         new Node(61, new Leaf("e", 27), new Node(34, new Leaf("b", 17), new Leaf("g", 17)))));
 
-    t.checkExpect(huffman.forest, forest);
+    t.checkExpect(forest, f);
   }
 
   void testEncode(Tester t) {
@@ -365,11 +365,14 @@ class HuffmanExamples {
 
     t.checkExceptionType(IllegalArgumentException.class, this.huffman, "encode", "A");
   }
-  
+
   void testPathTo(Tester t) {
     initEmpty();
     initData();
+
+    ArrayList<Boolean> empty = new ArrayList<Boolean>();
+
+    t.checkExpect(this.forest.get(0).pathTo("a", empty), null);
   }
-  
-  
+
 }
