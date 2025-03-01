@@ -88,8 +88,11 @@ class Huffman {
 
   // produces a list of booleans where 0 is represented by false and 1 by true
   // given a string
+  // EFFECT: produces a new ArrayLlist<Boolean> representing the encoding of a
+  // given string
   ArrayList<Boolean> encode(String str) {
 
+    ArrayList<Boolean> empty = new ArrayList<Boolean>();
     ArrayList<Boolean> result = new ArrayList<Boolean>();
 
     for (int i = 0; i < str.length(); i++) {
@@ -101,11 +104,21 @@ class Huffman {
             "Tried to encode " + s + " but that is not part of the language.");
       }
 
-//      return this.forest.get(0).pathTo(s);
+      ArrayList<Boolean> path = this.forest.get(0).pathTo(s, empty);
+      result.addAll(path);
+    }
+    return result;
+  }
 
+  String decode(ArrayList<Boolean> encoding) {
+    String result = "";
+
+    while (encoding.size() > 0) {
+      result += this.forest.get(0).find(encoding);
+      System.out.println(result);
     }
 
-    return null;
+    return result;
 
   }
 
@@ -143,6 +156,9 @@ interface BinTree {
 
   // produces a list of booleans representing the path to a letter
   ArrayList<Boolean> pathTo(String s, ArrayList<Boolean> path);
+
+  // finds the letter given the path
+  String find(ArrayList<Boolean> path);
 
 }
 
@@ -192,6 +208,11 @@ class Leaf implements BinTree {
       return path;
     }
     return new ArrayList<Boolean>();
+  }
+
+  // finds the letter given the path
+  public String find(ArrayList<Boolean> path) {
+    return this.letter;
   }
 
 }
@@ -246,10 +267,28 @@ class Node implements BinTree {
     ArrayList<Boolean> rightPath = new ArrayList<Boolean>(path);
     rightPath.add(true);
 
-    ArrayList<Boolean> result = this.pathTo(s, leftPath);
-    result.addAll(this.pathTo(s, rightPath));
+    ArrayList<Boolean> result = this.left.pathTo(s, leftPath);
+    result.addAll(this.right.pathTo(s, rightPath));
 
     return result;
+  }
+
+  // finds the letter given the path
+  public String find(ArrayList<Boolean> path) {
+//    System.out.print(path);
+    
+    if (path.size() <= 0) {
+      return "?";
+    }
+
+    Boolean first = path.get(0);
+    path.remove(0);
+
+    if (!first) {
+      return this.left.find(path);
+    }
+
+    return this.right.find(path);
   }
 
 }
@@ -364,6 +403,21 @@ class HuffmanExamples {
     initData();
 
     t.checkExceptionType(IllegalArgumentException.class, this.huffman, "encode", "A");
+
+    ArrayList<Boolean> result = new ArrayList<Boolean>();
+    result.add(false);
+    result.add(false);
+    result.add(false);
+    result.add(true);
+    result.add(true);
+    result.add(false);
+    result.add(true);
+    result.add(true);
+    result.add(true);
+    result.add(true);
+    result.add(false);
+
+    t.checkExpect(this.huffman.encode("addb"), result);
   }
 
   void testPathTo(Tester t) {
@@ -372,7 +426,31 @@ class HuffmanExamples {
 
     ArrayList<Boolean> empty = new ArrayList<Boolean>();
 
-    t.checkExpect(this.forest.get(0).pathTo("a", empty), null);
+    ArrayList<Boolean> result = new ArrayList<Boolean>();
+    result.add(false);
+    result.add(false);
+
+    t.checkExpect(this.forest.get(0).pathTo("a", empty), result);
+
+    result = new ArrayList<Boolean>();
+    result.add(true);
+    result.add(true);
+    result.add(false);
+
+    t.checkExpect(this.forest.get(0).pathTo("b", empty), result);
+  }
+
+  void testFind(Tester t) {
+    initEmpty();
+    initData();
+
+    ArrayList<Boolean> result = new ArrayList<Boolean>();
+
+    result.add(false);
+    t.checkExpect(huffman.decode(result), "?");
+    result.add(false);
+    t.checkExpect(huffman.decode(result), "");
+
   }
 
 }
